@@ -99,7 +99,8 @@ FairPullQueue<PullPkt>::dequeue() {
         if (_current_queue == _queue_map.end())
             _current_queue = _queue_map.begin();
         CircularBuffer <PullPkt*>* pull_queue = _current_queue->second;
-        
+        int current_flow_id = _current_queue->first;
+
         _scheduled++;
 
         if (_scheduled >= _packets_per_burst){
@@ -109,6 +110,10 @@ FairPullQueue<PullPkt>::dequeue() {
         if (!pull_queue->empty()) {
             //we add packets to the front,remove them from the back
             PullPkt* packet = pull_queue->pop();
+            if (pull_queue->empty()) {
+              _queue_map.erase(current_flow_id);
+              delete pull_queue;
+            }
             this->_pull_count--;
             return packet;
         }
